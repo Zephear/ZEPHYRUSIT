@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ZephyrusIT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Jost:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="icon" type="image/x-icon" href="/css/pictures/icons8-cyber-security-16.png" />
+    <script src="/app.js" defer></script>
+  </head>
+
+  <body>
+    <header class="header montserrat">
+      <div class="logo">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="70"
+          height="70"
+          viewBox="0 1 27 22"
+          fill="none"
+          stroke="rgba(43, 151, 32, 1)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
+          <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
+          <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
+        </svg>
+        <a href="#" class="logo-link">
+          <div class="site-name">Zephyrus<span class="accent">IT</span></div>
+        </a>
+      </div>
+      <div class="right-menu" id="main-nav">
+        <nav class="main-nav">
+          <a href="#" class="nav-link active" onclick="showPage('home')"
+            >Main</a
+          >
+          <a href="#" class="nav-link" onclick="showPage('dictionary')"
+            >Notes</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <section id="login-section" class="login-container">
+      <div class="content login-box">
+        <h2 class="widget-title">log in system</h2>
+        <form id="login-form">
+          <input
+            type="text"
+            id="username"
+            placeholder="Username"
+            required
+            class="input-field"
+          />
+          <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            required
+            class="input-field"
+          />
+          <button type="submit" class="cta-btn">log in</button>
+          <p id="login-error" style="color: #ff6b6b; display: none">
+            Invalid username or password. Please try again.
+          </p>
+        </form>
+      </div>
+    </section>
+    <section id="main-content" class="main-page jost">
+      <div id="home-section" class="page-section">
+        <h1 class="main-page-title">Welcome to ZephyrusIT</h1>
+        <div id="user-info-bar" class="user-info-bar">
+          <span id="user-info-name" class="user-info-name"></span>
+          <span id="user-info-role" class="user-info-role"></span>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="register-modal-overlay" class="modal-overlay">
+          <div class="modal-content">
+            <h3 style="margin-top: 0; color: #fff; margin-bottom: 15px">
+              Register New Employee
+            </h3>
+            <input
+              type="text"
+              id="reg-username"
+              placeholder="New Username"
+              class="input-field"
+            />
+            <input
+              type="password"
+              id="reg-password"
+              placeholder="Temporary Password"
+              class="input-field"
+            />
+            <select
+              id="reg-role"
+              class="input-field"
+              style="background: rgba(255, 255, 255, 0.1); color: white"
+            >
+              <option value="user" style="color: black">User</option>
+              <option value="admin" style="color: black">Admin</option>
+            </select>
+            <div class="modal-actions">
+              <button id="cancel-register-btn" class="alpha-btn">Cancel</button>
+              <button id="save-register-btn" class="cta-btn">Register</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Directory Modal -->
+        <div id="directory-modal-overlay" class="modal-overlay">
+          <div class="modal-content" style="max-width: 500px">
+            <h3 style="margin-top: 0; color: #fff; margin-bottom: 15px">
+              Employee Directory
+            </h3>
+            <div
+              id="employee-list-container"
+              style="
+                max-height: 400px;
+                overflow-y: auto;
+                color: #fff;
+                text-align: left;
+                padding: 10px;
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+              "
+            ></div>
+            <div class="modal-actions">
+              <button id="close-directory-btn" class="alpha-btn">Close</button>
+            </div>
+          </div>
+        </div>
+        <div id="news-modal-overlay" class="modal-overlay">
+          <div class="modal-content">
+            <h3
+              id="news-modal-title"
+              style="margin-top: 0; color: #fff; margin-bottom: 15px"
+            >
+              Add News
+            </h3>
+            <input
+              type="text"
+              id="news-title-input"
+              placeholder="Headline..."
+              class="input-field"
+            />
+            <textarea
+              id="news-content-input"
+              placeholder="Write news content here..."
+              class="input-field textarea-field"
+            ></textarea>
+            <div class="modal-actions">
+              <button id="cancel-news-btn" class="alpha-btn">Cancel</button>
+              <button id="save-news-btn" class="cta-btn">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="news-and-links-wrap">
+          <div class="news-column">
+            <div
+              class="add-wrap admin-only"
+              style="justify-content: flex-start; margin-bottom: 1.5rem"
+            ></div>
+            <div id="news-list-container"></div>
+          </div>
+
+          <div class="sidebar-widget quick-links-card">
+            <h3 class="widget-title">
+              <span class="accent">Quick Links</span>
+            </h3>
+            <ul class="quick-links-list">
+              <li class="admin-only">
+                <a href="#" class="quick-link-item" id="open-news-modal-btn">
+                  <span class="icon">➕</span>
+                  <span class="text">Add News</span>
+                </a>
+              </li>
+              <li class="admin-only">
+                <a
+                  href="#"
+                  class="quick-link-item"
+                  id="open-register-modal-btn"
+                >
+                  <span class="icon">👤</span>
+                  <span class="text">Register Employee</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="quick-link-item">
+                  <span class="icon">🛠️</span>
+                  <span class="text">IT Helpdesk</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="quick-link-item">
+                  <span class="icon">📅</span>
+                  <span class="text">Meeting Room Booking</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="quick-link-item" id="open-directory-btn">
+                  <span class="icon">📁</span>
+                  <span class="text">Employee Directory</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="quick-link-item">
+                  <span class="icon">🔒</span>
+                  <span class="text">Password Vault</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="quick-link-item">
+                  <span class="icon">📖</span>
+                  <span class="text">Security Policies</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="quick-link-item" id="logout-btn">
+                  <span class="icon">🚪</span>
+                  <span class="text" style="color: #ff6b6b">Log Out</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+   <section id="dictionary-section" class="page-section">
+      <div class="dictionary-intro-text">
+        <h2 class="main-page-title">Personal Notes</h2>
+        <p>
+          Manage your daily tasks, server configurations, and secure notes here.
+          All entries are tied to your account and visible only to you. Remember
+          to follow ZephyrusIT security guidelines when storing sensitive data.
+        </p>
+        <div class="line_between"></div>
+      </div>
+
+      <div class="study-container">
+        
+        <div class="notes-toolbar">
+          <div class="alphabet-search">
+            <button class="alpha-btn active" data-range="All Notes">All Notes</button>
+            <button class="alpha-btn" data-range="Pinned">📌 Pinned</button>
+            <button class="alpha-btn" data-range="Tasks">✅ Tasks</button>
+            <button class="alpha-btn" data-range="Passwords">🔑 Passwords</button>
+          </div>
+          <button id="open-modal-btn" class="notes-add-btn">
+            <span class="btn-icon">＋</span>
+            <span class="btn-label">Add Note</span>
+          </button>
+        </div>
+
+        <div id="note-modal-overlay" class="modal-overlay">
+          <div class="modal-content" id="note-creator">
+            <h3 id="modal-title">Create Note</h3>
+
+            <div class="form-group">
+              <label class="form-label">Title</label>
+              <input
+                type="text"
+                id="note-title"
+                placeholder="Give your note a title..."
+                class="input-field"
+              />
+            </div>
+
+            <div class="form-group" id="assignee-group" style="display: none">
+              <label class="form-label">Assignee</label>
+              <input
+                type="text"
+                id="task-assignee"
+                placeholder="Username (e.g. dev_john)..."
+                class="input-field"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Content</label>
+              <textarea
+                id="note-content"
+                placeholder="Write your note here..."
+                class="input-field textarea-field"
+              ></textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button id="cancel-note-btn" class="alpha-btn">Cancel</button>
+              <button id="save-note-btn" class="cta-btn">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="notes-grid" id="notes-list-container"></div>
+      </div>
+    </section>
+
+    <footer class="footer montserrat">
+      <div class="footer-content">
+        <div class="social-links">
+          <a
+            href="https://www.facebook.com/profile.php?id=61552758282863"
+            target="_blank"
+            rel="noopener"
+            class="facebook"
+            aria-label="Facebook"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://www.instagram.com/cyberfield_net?igsh=OWxncTMzeHoxeHFz"
+            target="_blank"
+            rel="noopener"
+            class="instagram"
+            aria-label="Instagram"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://www.linkedin.com/company/cyberfield-net/"
+            target="_blank"
+            rel="noopener"
+            class="linkedin"
+            aria-label="LinkedIn"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://t.me/cyberpole"
+            target="_blank"
+            rel="noopener"
+            class="telegram"
+            aria-label="Telegram"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <div class="footer-links">
+          <a href="/privacy-policy"
+            ><span class="accent">Privacy Policy</span></a
+          >
+          <a href="/terms"><span class="accent">Terms of Service</span></a>
+        </div>
+
+        <div class="footer-bottom">
+          <div class="line-between"></div>
+          <p>&copy; ZephyrusIT. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
