@@ -1,7 +1,6 @@
 // ==========================================
 // AUTHORIZATION
 // ==========================================
-
 let currentUser = null;
 
 function initLoginApp() {
@@ -24,6 +23,7 @@ function initLoginApp() {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem('jwt_token', data.access_token);
         currentUser = {
           user_id: data.user_id,
           username: data.username,
@@ -45,7 +45,6 @@ function initLoginApp() {
         initRegisterApp();
         initDirectoryApp();
 
-        // Вивід імені та ролі на головній
         const nameEl = document.getElementById('user-info-name');
         const roleEl = document.getElementById('user-info-role');
         if (nameEl) nameEl.textContent = '👤 ' + data.username;
@@ -62,7 +61,6 @@ function initLoginApp() {
     }
   });
 }
-
 // ==========================================
 // USER REGISTRATION LOGIC
 // ==========================================
@@ -115,12 +113,16 @@ async function handleRegisterUser() {
     return;
   }
 
+  const token = localStorage.getItem('jwt_token');
+
   try {
     const response = await fetch('/api/register', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
-        requester_role: currentUser.role,
         username: username,
         password: password,
         role: role,
@@ -152,7 +154,7 @@ function initLogoutApp() {
     e.preventDefault();
 
     currentUser = null;
-
+    localStorage.removeItem('jwt_token');
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
     document.getElementById('login-error').style.display = 'none';
@@ -176,7 +178,7 @@ function initDirectoryApp() {
   if (openDirBtn) {
     openDirBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      await loadDirectory(); // Завантажуємо дані перед відкриттям
+      await loadDirectory();
       dirOverlay.classList.add('active');
     });
   }
@@ -293,7 +295,6 @@ window.deleteEmployee = async (userId, username) => {
     alert('No connection to the server.');
   }
 };
-
 // ==========================================
 // SITE NAVIGATION
 // ==========================================
@@ -392,18 +393,26 @@ async function handleSaveNews() {
     return;
   }
 
+  const token = localStorage.getItem('jwt_token');
+
   try {
     let res;
     if (editingNewsId !== null) {
       res = await fetch(`/api/news/${editingNewsId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ title, content }),
       });
     } else {
       res = await fetch('/api/news', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ title, content }),
       });
     }
@@ -483,8 +492,12 @@ window.editNews = (id) => openNewsModal(id);
 
 window.deleteNews = async (id) => {
   if (!confirm('Are you sure you want to delete this news post?')) return;
+  const token = localStorage.getItem('jwt_token');
   try {
-    await fetch(`/api/news/${id}`, { method: 'DELETE' });
+    await fetch(`/api/news/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
     await loadNews();
   } catch (e) {
     console.error(e);
@@ -658,13 +671,18 @@ function renderNotes() {
 
     let extraMeta = '';
     let actionBtn = '';
+
     const pinBtnHtml =
       note.type !== 'Tasks'
         ? `<button class="pin-btn ${note.is_pinned ? 'active' : ''}" onclick="togglePin(${note.id})" title="Pin / Unpin">📌</button>`
         : '';
 
+    let editBtnHtml = `<button class="pin-btn" onclick="editNote(${note.id})" title="Edit note">✏️</button>`;
+    let deleteBtnHtml = `<button class="delete-btn" onclick="deleteNote(${note.id})" title="Delete note">🗑️</button>`;
+
     if (note.type === 'Tasks') {
       extraMeta = `<span class="badge">Assignee: ${note.assignee || '—'}</span>`;
+
       if (
         !note.is_completed &&
         (currentUser.role === 'admin' || currentUser.username === note.assignee)
@@ -672,6 +690,13 @@ function renderNotes() {
         actionBtn = `<button class="task-action-btn" onclick="toggleTask(${note.id})">Mark Done</button>`;
       } else if (note.is_completed) {
         actionBtn = `<span style="color: #2b9720;">✓ Completed</span>`;
+      }
+
+      if (currentUser && currentUser.role !== 'admin') {
+        editBtnHtml = '';
+        if (!note.is_completed) {
+          deleteBtnHtml = '';
+        }
       }
     } else {
       const badgeLabel = note.type === 'All Notes' ? 'General' : note.type;
@@ -683,9 +708,9 @@ function renderNotes() {
       <div class="card-header">
         <h3>${note.title}</h3>
         <div class="card-actions">
-          <button class="pin-btn" onclick="editNote(${note.id})" title="Edit note">✏️</button>
+          ${editBtnHtml}
           ${pinBtnHtml}
-          <button class="delete-btn" onclick="deleteNote(${note.id})" title="Delete note">🗑️</button>
+          ${deleteBtnHtml}
         </div>
       </div>
       <p>${formattedContent}</p>

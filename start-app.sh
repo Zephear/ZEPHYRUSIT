@@ -1,6 +1,5 @@
-#!/bin/bash
-echo "🚀 Запуск додатку ZephyrusIT..."
+echo "Starting ZephyrusITee application..."
 docker-compose up -d --build
-echo "✅ Додаток успішно запущено!"
-echo "Фронтенд: http://localhost:8080"
-echo "Бекенд API: http://localhost:3000"
+echo "ZephyrusITee application is running."
+echo "Frontend: http://localhost:8080"
+echo "Backend API: http://localhost:3000"

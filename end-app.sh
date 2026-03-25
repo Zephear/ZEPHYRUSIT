@@ -1,4 +1,3 @@
-#!/bin/bash
-echo "🛑 Зупинка додатку..."
+echo "Stopping ZephyrusITee application..."
 docker-compose down
-echo "✅ Контейнери зупинено."
+echo "ZephyrusITee application stopped."

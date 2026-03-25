@@ -4,10 +4,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pymysql
 import bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 
 app = Flask(__name__)
 CORS(app)
 
+app.config['JWT_SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-secret-key')
+jwt = JWTManager(app)
+
+# ==========================================
+# DATABASE CONNECTION
+# ==========================================
 def get_db_connection():
     retries = 5
     while retries > 0:
@@ -21,13 +28,13 @@ def get_db_connection():
             )
             return connection
         except pymysql.MySQLError as e:
-            print(f"Очікування бази даних... Залишилось спроб: {retries-1}")
+            print(f"Waiting for database... Retries left: {retries-1}")
             retries -= 1
             time.sleep(3)
-    raise Exception("Не вдалося підключитися до бази даних")
+    raise Exception("Could not connect to the database")
 
 # ==========================================
-# АВТОРИЗАЦІЯ
+# AUTHORIZATION
 # ==========================================
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -36,7 +43,7 @@ def login():
     password = data.get('password')
 
     if not username or not password:
-        return jsonify({"error": "Введіть логін та пароль"}), 400
+        return jsonify({"error": "Please enter username and password"}), 400
 
     conn = get_db_connection()
     try:
@@ -45,66 +52,71 @@ def login():
             user = cursor.fetchone()
 
             if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+                access_token = create_access_token(
+                    identity=str(user['id']),
+                    additional_claims={
+                        'user_id': user['id'],
+                        'username': user['username'],
+                        'role': user['role']
+                    }
+                )
+                
                 return jsonify({
-                    "message": "Успішний вхід",
+                    "message": "Login successful",
+                    "access_token": access_token,
                     "user_id": user['id'],
                     "username": user['username'],
                     "role": user['role']
                 }), 200
             else:
-                return jsonify({"error": "Невірний логін або пароль"}), 401
+                return jsonify({"error": "Invalid username or password"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
 
-
 # ==========================================
-# РЕЄСТРАЦІЯ (ТІЛЬКИ ДЛЯ АДМІНІСТРАТОРІВ)
+# REGISTRATION (ADMIN ONLY)
 # ==========================================
 @app.route('/api/register', methods=['POST'])
+@jwt_required()
 def register():
+    claims = get_jwt()
+    
+    if claims.get('role') != 'admin':
+        return jsonify({"error": "Only administrators can add new users."}), 403
+
     data = request.json
-    requester_role = data.get('requester_role') # Перевірка ролі того, хто робить запит
     username = data.get('username')
     password = data.get('password')
     role = data.get('role', 'user')
 
-    # Серверна перевірка, щоб тільки адмін міг створити юзера
-    if requester_role != 'admin':
-        return jsonify({"error": "Тільки адміністратор може додавати нових користувачів."}), 403
-
     if not username or not password:
-        return jsonify({"error": "Введіть логін та пароль."}), 400
+        return jsonify({"error": "Please enter username and password."}), 400
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            # Перевіряємо, чи такий користувач вже існує
             cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
             if cursor.fetchone():
-                return jsonify({"error": "Користувач з таким логіном вже існує."}), 409
+                return jsonify({"error": "User with this username already exists."}), 409
 
-            # Хешуємо пароль перед збереженням
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-            # Зберігаємо в базу
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role) VALUES (%s, %s, %s)",
                 (username, hashed_password, role)
             )
         conn.commit()
-        return jsonify({"message": f"Користувача {username} успішно створено!"}), 201
+        return jsonify({"message": f"User {username} successfully created!"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
 
-
 # ==========================================
-# CRUD ОПЕРАЦІЇ ДЛЯ НОВИН
+# NEWS CRUD OPERATIONS
 # ==========================================
-
 @app.route('/api/news', methods=['GET'])
 def get_news():
     conn = get_db_connection()
@@ -116,46 +128,55 @@ def get_news():
         conn.close()
 
 @app.route('/api/news', methods=['POST'])
+@jwt_required()
 def create_news():
+    claims = get_jwt()
+    if claims.get('role') != 'admin':
+        return jsonify({"error": "Only administrators can create news."}), 403
     data = request.json
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("INSERT INTO news (title, content) VALUES (%s, %s)", (data.get('title'), data.get('content')))
         conn.commit()
-        return jsonify({"message": "Новину створено"}), 201
+        return jsonify({"message": "News created"}), 201
     finally:
         conn.close()
 
 @app.route('/api/news/<int:news_id>', methods=['PUT'])
+@jwt_required()
 def update_news(news_id):
+    claims = get_jwt()
+    if claims.get('role') != 'admin':
+        return jsonify({"error": "Only administrators can update news."}), 403
     data = request.json
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("UPDATE news SET title = %s, content = %s WHERE id = %s", (data.get('title'), data.get('content'), news_id))
         conn.commit()
-        return jsonify({"message": "Новину оновлено"}), 200
+        return jsonify({"message": "News updated"}), 200
     finally:
         conn.close()
 
 @app.route('/api/news/<int:news_id>', methods=['DELETE'])
+@jwt_required()
 def delete_news(news_id):
+    claims = get_jwt()
+    if claims.get('role') != 'admin':
+        return jsonify({"error": "Only administrators can delete news."}), 403
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM news WHERE id = %s", (news_id,))
         conn.commit()
-        return jsonify({"message": "Новину видалено"}), 200
+        return jsonify({"message": "News deleted"}), 200
     finally:
         conn.close()
 
 # ==========================================
-# CRUD ОПЕРАЦІЇ ДЛЯ НОТАТОК
+# NOTES CRUD OPERATIONS
 # ==========================================
-
-# CREATE
-# CREATE
 @app.route('/api/notes', methods=['POST'])
 def create_note():
     data = request.json
@@ -167,40 +188,33 @@ def create_note():
     is_pinned = data.get('is_pinned', False)
 
     if not user_id or not content:
-        return jsonify({"error": "user_id та content обов'язкові"}), 400
+        return jsonify({"error": "user_id and content are required"}), 400
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            # --- НОВЕ: Перевірка, чи існує assignee в базі ---
             if assignee:
                 cursor.execute("SELECT id FROM users WHERE username = %s", (assignee,))
                 existing_user = cursor.fetchone()
                 if not existing_user:
-                    # Якщо юзера немає, повертаємо статус 404 (Not Found)
-                    return jsonify({"error": f"Помилка: Працівника з логіном '{assignee}' не існує."}), 404
-            # --------------------------------------------------
+                    return jsonify({"error": f"Error: Employee with username '{assignee}' does not exist."}), 404
 
             sql = "INSERT INTO notes (user_id, title, type, content, assignee, is_pinned) VALUES (%s, %s, %s, %s, %s, %s)"
             cursor.execute(sql, (user_id, title, note_type, content, assignee, is_pinned))
         conn.commit()
-        return jsonify({"message": "Нотатку створено", "id": cursor.lastrowid}), 201
+        return jsonify({"message": "Note created", "id": cursor.lastrowid}), 201
     finally:
         conn.close()
-# READ
-# READ
+
 @app.route('/api/notes/<int:user_id>', methods=['GET'])
 def get_notes(user_id):
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
-            # 1. Спочатку дізнаємося username користувача за його ID
             cursor.execute("SELECT username FROM users WHERE id = %s", (user_id,))
             user_data = cursor.fetchone()
             username = user_data['username'] if user_data else ""
 
-            # 2. Вибираємо нотатки, які СТВОРИВ цей користувач (user_id = %s)
-            # АБО які ПРИЗНАЧЕНІ йому як завдання (assignee = %s)
             sql = """
                 SELECT id, title, type, content, is_pinned, is_completed, assignee 
                 FROM notes 
@@ -210,7 +224,6 @@ def get_notes(user_id):
             cursor.execute(sql, (user_id, username))
             notes = cursor.fetchall()
             
-            # Конвертуємо булеві значення для фронтенду
             for note in notes:
                 note['is_pinned'] = bool(note['is_pinned'])
                 note['is_completed'] = bool(note['is_completed'])
@@ -219,7 +232,6 @@ def get_notes(user_id):
     finally:
         conn.close()
 
-# UPDATE
 @app.route('/api/notes/<int:note_id>', methods=['PUT'])
 def update_note(note_id):
     data = request.json
@@ -247,17 +259,16 @@ def update_note(note_id):
                 values.append(is_completed)
 
             if not updates:
-                return jsonify({"error": "Нічого для оновлення"}), 400
+                return jsonify({"error": "Nothing to update"}), 400
 
             values.append(note_id)
             sql = f"UPDATE notes SET {', '.join(updates)} WHERE id = %s"
             cursor.execute(sql, values)
         conn.commit()
-        return jsonify({"message": "Нотатку оновлено"}), 200
+        return jsonify({"message": "Note updated"}), 200
     finally:
         conn.close()
 
-# DELETE
 @app.route('/api/notes/<int:note_id>', methods=['DELETE'])
 def delete_note(note_id):
     conn = get_db_connection()
@@ -266,11 +277,13 @@ def delete_note(note_id):
             sql = "DELETE FROM notes WHERE id = %s"
             cursor.execute(sql, (note_id,))
         conn.commit()
-        return jsonify({"message": "Нотатку видалено"}), 200
+        return jsonify({"message": "Note deleted"}), 200
     finally:
         conn.close()
 
-
+# ==========================================
+# USER MANAGEMENT
+# ==========================================
 @app.route('/api/users', methods=['GET'])
 def get_users():
     conn = get_db_connection()
@@ -288,24 +301,27 @@ def delete_user(user_id):
     requester_role = data.get('requester_role')
 
     if requester_role != 'admin':
-        return jsonify({"error": "Тільки адміністратор може видаляти користувачів."}), 403
+        return jsonify({"error": "Only administrators can delete users."}), 403
 
     if requester_id == user_id:
-        return jsonify({"error": "Не можна видалити власний акаунт."}), 400
+        return jsonify({"error": "You cannot delete your own account."}), 400
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
             if not cursor.fetchone():
-                return jsonify({"error": "Користувача не знайдено."}), 404
+                return jsonify({"error": "User not found."}), 404
             cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
-        return jsonify({"message": "Користувача успішно видалено."}), 200
+        return jsonify({"message": "User successfully deleted."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
 
+# ==========================================
+# APP RUNNER
+# ==========================================
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)

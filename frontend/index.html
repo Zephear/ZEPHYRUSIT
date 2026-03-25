@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ZephyrusIT</title>
+    <title>ZephyrusITee</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,7 +11,11 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/style.css" />
-    <link rel="icon" type="image/x-icon" href="/css/pictures/icons8-cyber-security-16.png" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="/css/pictures/icons8-cyber-security-16.png"
+    />
     <script src="/app.js" defer></script>
   </head>
 
@@ -34,7 +38,7 @@
           <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
         </svg>
         <a href="#" class="logo-link">
-          <div class="site-name">Zephyrus<span class="accent">IT</span></div>
+          <div class="site-name">Zephyrus<span class="accent">ITee</span></div>
         </a>
       </div>
       <div class="right-menu" id="main-nav">
@@ -76,46 +80,45 @@
     </section>
     <section id="main-content" class="main-page jost">
       <div id="home-section" class="page-section">
-        <h1 class="main-page-title">Welcome to ZephyrusIT</h1>
+        <h1 class="main-page-title">What's new in our company?</h1>
         <div id="user-info-bar" class="user-info-bar">
           <span id="user-info-name" class="user-info-name"></span>
           <span id="user-info-role" class="user-info-role"></span>
         </div>
-
-        <!-- Register Modal -->
         <div id="register-modal-overlay" class="modal-overlay">
           <div class="modal-content">
-            <h3 style="margin-top: 0; color: #fff; margin-bottom: 15px">
-              Register New Employee
-            </h3>
-            <input
-              type="text"
-              id="reg-username"
-              placeholder="New Username"
-              class="input-field"
-            />
-            <input
-              type="password"
-              id="reg-password"
-              placeholder="Temporary Password"
-              class="input-field"
-            />
-            <select
-              id="reg-role"
-              class="input-field"
-              style="background: rgba(255, 255, 255, 0.1); color: white"
-            >
-              <option value="user" style="color: black">User</option>
-              <option value="admin" style="color: black">Admin</option>
-            </select>
+            <h3>Register New Employee</h3>
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input
+                type="text"
+                id="reg-username"
+                placeholder="Enter username..."
+                class="input-field"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Temporary Password</label>
+              <input
+                type="password"
+                id="reg-password"
+                placeholder="Enter password..."
+                class="input-field"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <select id="reg-role" class="input-field reg-select">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
             <div class="modal-actions">
               <button id="cancel-register-btn" class="alpha-btn">Cancel</button>
               <button id="save-register-btn" class="cta-btn">Register</button>
             </div>
           </div>
         </div>
-
-        <!-- Directory Modal -->
         <div id="directory-modal-overlay" class="modal-overlay">
           <div class="modal-content" style="max-width: 500px">
             <h3 style="margin-top: 0; color: #fff; margin-bottom: 15px">
@@ -163,7 +166,6 @@
             </div>
           </div>
         </div>
-
         <div class="news-and-links-wrap">
           <div class="news-column">
             <div
@@ -172,7 +174,6 @@
             ></div>
             <div id="news-list-container"></div>
           </div>
-
           <div class="sidebar-widget quick-links-card">
             <h3 class="widget-title">
               <span class="accent">Quick Links</span>
@@ -235,8 +236,7 @@
         </div>
       </div>
     </section>
-
-   <section id="dictionary-section" class="page-section">
+    <section id="dictionary-section" class="page-section">
       <div class="dictionary-intro-text">
         <h2 class="main-page-title">Personal Notes</h2>
         <p>
@@ -248,13 +248,16 @@
       </div>
 
       <div class="study-container">
-        
         <div class="notes-toolbar">
           <div class="alphabet-search">
-            <button class="alpha-btn active" data-range="All Notes">All Notes</button>
+            <button class="alpha-btn active" data-range="All Notes">
+              All Notes
+            </button>
             <button class="alpha-btn" data-range="Pinned">📌 Pinned</button>
             <button class="alpha-btn" data-range="Tasks">✅ Tasks</button>
-            <button class="alpha-btn" data-range="Passwords">🔑 Passwords</button>
+            <button class="alpha-btn" data-range="Passwords">
+              🔑 Passwords
+            </button>
           </div>
           <button id="open-modal-btn" class="notes-add-btn">
             <span class="btn-icon">＋</span>
